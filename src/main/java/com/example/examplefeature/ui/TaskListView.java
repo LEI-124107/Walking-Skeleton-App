@@ -1,12 +1,15 @@
 package com.example.examplefeature.ui;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.QrCodeGenerator;
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -61,8 +64,20 @@ class TaskListView extends Main {
         taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("Never"))
                 .setHeader("Due Date");
         taskGrid.addColumn(task -> dateTimeFormatter.format(task.getCreationDate())).setHeader("Creation Date");
-        taskGrid.setSizeFull();
+        taskGrid.addComponentColumn(task -> {
+            Button qrButton = new Button("See QR Code");
+            qrButton.addClickListener(e -> {
+                String text = task.getDescription() + " - " +
+                        Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("No due date");
+                Image qrImage = QrCodeGenerator.generateQrCode(text, 200);
+                Dialog dialog = new Dialog(qrImage);
+                dialog.setHeaderTitle("QR Code for task");
+                dialog.open();
+            });
+            return qrButton;
+        }).setHeader("QR Code");
 
+        taskGrid.setSizeFull();
         setSizeFull();
         addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
                 LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
