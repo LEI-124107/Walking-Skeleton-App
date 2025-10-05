@@ -1,5 +1,6 @@
 package com.example.examplefeature;
 
+import com.example.examplefeature.Task.Priority;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,13 @@ public class TaskService {
             throw new RuntimeException("This is for testing the error handler");
         }
         var task = new Task(description, Instant.now());
+        task.setDueDate(dueDate);
+        taskRepository.saveAndFlush(task);
+    }
+
+    @Transactional
+    public void createTask(String description, LocalDate dueDate, Priority priority) {
+        Task task = new Task(description, Instant.now(), priority);
         task.setDueDate(dueDate);
         taskRepository.saveAndFlush(task);
     }

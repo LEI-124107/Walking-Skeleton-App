@@ -5,9 +5,13 @@ import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
@@ -32,6 +36,7 @@ class TaskListView extends Main {
 
     final TextField description;
     final DatePicker dueDate;
+    final ComboBox<Task.Priority> priorityBox; // <-- Add this line
     final Button createBtn;
     final Grid<Task> taskGrid;
 
@@ -48,6 +53,11 @@ class TaskListView extends Main {
         dueDate.setPlaceholder("Due date");
         dueDate.setAriaLabel("Due date");
 
+        // Add priority dropdown
+        priorityBox = new ComboBox<>("Priority");
+        priorityBox.setItems(Task.Priority.values());
+        priorityBox.setValue(Task.Priority.MEDIUM); // Default value
+
         createBtn = new Button("Create", event -> createTask());
         createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
@@ -57,6 +67,41 @@ class TaskListView extends Main {
 
         taskGrid = new Grid<>();
         taskGrid.setItems(query -> taskService.list(toSpringPageRequest(query)).stream());
+
+        // Priority column with colored icon and label
+        taskGrid.addComponentColumn(task -> {
+            Icon icon;
+            String color;
+            String label;
+            switch (task.getPriority()) {
+                case HIGH:
+                    icon = VaadinIcon.ARROW_UP.create();
+                    color = "red";
+                    label = "High";
+                    break;
+                case MEDIUM:
+                    icon = VaadinIcon.ARROW_RIGHT.create();
+                    color = "orange";
+                    label = "Medium";
+                    break;
+                case LOW:
+                    icon = VaadinIcon.ARROW_DOWN.create();
+                    color = "green";
+                    label = "Low";
+                    break;
+                default:
+                    icon = VaadinIcon.QUESTION.create();
+                    color = "gray";
+                    label = "Unknown";
+            }
+            icon.getStyle().set("color", color);
+            Span priorityLabel = new Span(label);
+            priorityLabel.getStyle().set("color", color).set("font-weight", "bold");
+            Span container = new Span(icon, priorityLabel);
+            container.getElement().getStyle().set("display", "flex").set("align-items", "center").set("gap", "0.3em");
+            return container;
+        }).setHeader("Priority");
+
         taskGrid.addColumn(Task::getDescription).setHeader("Description");
         taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("Never"))
                 .setHeader("Due Date");
@@ -67,15 +112,18 @@ class TaskListView extends Main {
         addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
                 LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
 
-        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
+        // Add priorityBox to the toolbar group
+        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, priorityBox, createBtn)));
         add(taskGrid);
     }
 
     private void createTask() {
-        taskService.createTask(description.getValue(), dueDate.getValue());
+        // Pass priority to service
+        taskService.createTask(description.getValue(), dueDate.getValue(), priorityBox.getValue());
         taskGrid.getDataProvider().refreshAll();
         description.clear();
         dueDate.clear();
+        priorityBox.setValue(Task.Priority.MEDIUM);
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
