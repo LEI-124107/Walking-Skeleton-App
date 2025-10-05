@@ -1,5 +1,6 @@
 package com.example.examplefeature;
 
+import com.example.examplefeature.Task.Priority;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,23 @@ public class TaskService {
         taskRepository.saveAndFlush(task);
     }
 
+    @Transactional
+    public void createTask(String description, LocalDate dueDate, Priority priority) {
+        Task task = new Task(description, Instant.now(), priority);
+        task.setDueDate(dueDate);
+        taskRepository.saveAndFlush(task);
+    }
+
     @Transactional(readOnly = true)
     public List<Task> list(Pageable pageable) {
         return taskRepository.findAllBy(pageable).toList();
+    }
+
+    @Transactional
+    public void updateTaskPriority(Long taskId, Priority priority) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+        task.setPriority(priority);
+        taskRepository.saveAndFlush(task);
     }
 
 }

@@ -12,6 +12,10 @@ public class Task {
 
     public static final int DESCRIPTION_MAX_LENGTH = 300;
 
+    public enum Priority {
+        HIGH, MEDIUM, LOW
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "task_id")
@@ -27,12 +31,23 @@ public class Task {
     @Nullable
     private LocalDate dueDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority", nullable = false)
+    private Priority priority = Priority.MEDIUM;
+
     protected Task() { // To keep Hibernate happy
     }
 
     public Task(String description, Instant creationDate) {
         setDescription(description);
         this.creationDate = creationDate;
+        this.priority = Priority.MEDIUM;
+    }
+
+    public Task(String description, Instant creationDate, Priority priority) {
+        setDescription(description);
+        this.creationDate = creationDate;
+        this.priority = priority;
     }
 
     public @Nullable Long getId() {
@@ -62,6 +77,14 @@ public class Task {
         this.dueDate = dueDate;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null || !getClass().isAssignableFrom(obj.getClass())) {
@@ -77,10 +100,6 @@ public class Task {
 
     @Override
     public int hashCode() {
-        // Hashcode should never change during the lifetime of an object. Because of
-        // this we can't use getId() to calculate the hashcode. Unless you have sets
-        // with lots of entities in them, returning the same hashcode should not be a
-        // problem.
         return getClass().hashCode();
     }
 }
