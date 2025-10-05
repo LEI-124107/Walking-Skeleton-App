@@ -1,6 +1,7 @@
 package com.example.examplefeature.ui;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.PDFExporter;
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
 import com.vaadin.flow.component.button.Button;
@@ -19,6 +20,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.List;
 import java.util.Optional;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
@@ -26,7 +28,7 @@ import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRe
 @Route("")
 @PageTitle("Task List")
 @Menu(order = 0, icon = "vaadin:clipboard-check", title = "Task List")
-class TaskListView extends Main {
+public class TaskListView extends Main {
 
     private final TaskService taskService;
 
@@ -35,9 +37,10 @@ class TaskListView extends Main {
     final Button createBtn;
     final Grid<Task> taskGrid;
 
-    TaskListView(TaskService taskService) {
+    public TaskListView(TaskService taskService) {
         this.taskService = taskService;
 
+        // Campos de criação de tarefas
         description = new TextField();
         description.setPlaceholder("What do you want to do?");
         description.setAriaLabel("Task description");
@@ -51,10 +54,18 @@ class TaskListView extends Main {
         createBtn = new Button("Create", event -> createTask());
         createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(getLocale())
+        // Botão Export PDF
+        Button exportBtn = new Button("Export PDF", e -> exportTasksToPDF());
+        exportBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        add(exportBtn);
+
+        // Formatadores de datas
+        var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                .withLocale(getLocale())
                 .withZone(ZoneId.systemDefault());
         var dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(getLocale());
 
+        // Grid de tarefas
         taskGrid = new Grid<>();
         taskGrid.setItems(query -> taskService.list(toSpringPageRequest(query)).stream());
         taskGrid.addColumn(Task::getDescription).setHeader("Description");
@@ -63,14 +74,19 @@ class TaskListView extends Main {
         taskGrid.addColumn(task -> dateTimeFormatter.format(task.getCreationDate())).setHeader("Creation Date");
         taskGrid.setSizeFull();
 
+        // Layout principal
         setSizeFull();
-        addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
-                LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
+        addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX,
+                LumoUtility.FlexDirection.COLUMN, LumoUtility.Padding.MEDIUM,
+                LumoUtility.Gap.SMALL);
 
+        // Adiciona toolbar + botão export e grid
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
+        add(exportBtn); // botão visível agora
         add(taskGrid);
     }
 
+    // Criação de tarefas
     private void createTask() {
         taskService.createTask(description.getValue(), dueDate.getValue());
         taskGrid.getDataProvider().refreshAll();
@@ -79,5 +95,34 @@ class TaskListView extends Main {
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
+
+    // Exportação de tarefas para PDF
+    private void exportTasksToPDF() {
+        try {
+
+            List<Task> tasks = taskService.listAll();
+
+
+            List<String> taskDescriptions = tasks.stream()
+                    .map(Task::getDescription)
+                    .toList();
+
+
+            String filePath = System.getProperty("user.home") + "/tasks.pdf";
+
+
+            PDFExporter.exportToPDF(taskDescriptions, filePath);
+
+
+            Notification.show("PDF successfully generated: " + filePath, 5000, Notification.Position.BOTTOM_END)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+        } catch (Exception ex) {
+            ex.printStackTrace(); // stack trace no console
+            Notification.show("Error generating PDF: " + ex.getMessage(), 5000, Notification.Position.BOTTOM_END)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
 
 }
