@@ -41,4 +41,11 @@ public class TaskService {
         return taskRepository.findAllBy(pageable).toList();
     }
 
+    @Transactional
+    public void updateTaskPriority(Long taskId, Priority priority) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+        task.setPriority(priority);
+        taskRepository.saveAndFlush(task);
+    }
+
 }

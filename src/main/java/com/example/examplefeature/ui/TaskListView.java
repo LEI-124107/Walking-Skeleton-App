@@ -19,6 +19,7 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import com.vaadin.flow.component.dialog.Dialog;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -115,6 +116,13 @@ class TaskListView extends Main {
         // Add priorityBox to the toolbar group
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, priorityBox, createBtn)));
         add(taskGrid);
+
+        // Add an "Edit Priority" button column to the grid
+        taskGrid.addComponentColumn(task -> {
+            Button editBtn = new Button(VaadinIcon.EDIT.create(), event -> openEditPriorityDialog(task));
+            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            return editBtn;
+        }).setHeader("Edit Priority");
     }
 
     private void createTask() {
@@ -126,6 +134,30 @@ class TaskListView extends Main {
         priorityBox.setValue(Task.Priority.MEDIUM);
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+    }
+
+    private void openEditPriorityDialog(Task task) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Edit Priority");
+
+        ComboBox<Task.Priority> priorityField = new ComboBox<>("Priority");
+        priorityField.setItems(Task.Priority.values());
+        priorityField.setValue(task.getPriority());
+
+        Button saveBtn = new Button("Save", event -> {
+            task.setPriority(priorityField.getValue());
+            taskService.updateTaskPriority(task.getId(), priorityField.getValue());
+            taskGrid.getDataProvider().refreshAll();
+            dialog.close();
+            Notification.show("Priority updated", 2000, Notification.Position.BOTTOM_END)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+
+        Button cancelBtn = new Button("Cancel", event -> dialog.close());
+
+        dialog.getFooter().add(cancelBtn, saveBtn);
+        dialog.add(priorityField);
+        dialog.open();
     }
 
 }
