@@ -38,8 +38,15 @@ public final class MainLayout extends AppLayout {
     private SideNav createSideNav() {
         var nav = new SideNav();
         nav.addClassNames(Margin.Horizontal.MEDIUM);
+
+        // itens gerados automaticamente pelas views existentes
         MenuConfiguration.getMenuEntries().forEach(entry -> nav.addItem(createSideNavItem(entry)));
+
+        // ➕ adicionar o item "Email" a apontar para a rota /email
+        nav.addItem(new SideNavItem("Email", "email", VaadinIcon.ENVELOPE.create()));
+
         return nav;
+
     }
 
     private SideNavItem createSideNavItem(MenuEntry menuEntry) {
