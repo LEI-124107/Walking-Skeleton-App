@@ -1,13 +1,21 @@
 package com.example.examplefeature.ui;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.PDFExporter;
+import com.example.examplefeature.QrCodeGenerator;
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
@@ -15,10 +23,12 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import com.vaadin.flow.component.dialog.Dialog;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.List;
 import java.util.Optional;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
@@ -26,18 +36,20 @@ import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRe
 @Route("")
 @PageTitle("Task List")
 @Menu(order = 0, icon = "vaadin:clipboard-check", title = "Task List")
-class TaskListView extends Main {
+public class TaskListView extends Main {
 
     private final TaskService taskService;
 
     final TextField description;
     final DatePicker dueDate;
+    final ComboBox<Task.Priority> priorityBox; // <-- Add this line
     final Button createBtn;
     final Grid<Task> taskGrid;
 
-    TaskListView(TaskService taskService) {
+    public TaskListView(TaskService taskService) {
         this.taskService = taskService;
 
+        // Campos de criação de tarefas
         description = new TextField();
         description.setPlaceholder("What do you want to do?");
         description.setAriaLabel("Task description");
@@ -48,36 +60,163 @@ class TaskListView extends Main {
         dueDate.setPlaceholder("Due date");
         dueDate.setAriaLabel("Due date");
 
+        // Add priority dropdown
+        priorityBox = new ComboBox<>("Priority");
+        priorityBox.setItems(Task.Priority.values());
+        priorityBox.setValue(Task.Priority.MEDIUM); // Default value
+
         createBtn = new Button("Create", event -> createTask());
         createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(getLocale())
+        // Botão Export PDF
+        Button exportBtn = new Button("Export PDF", e -> exportTasksToPDF());
+        exportBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        add(exportBtn);
+
+        // Formatadores de datas
+        var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                .withLocale(getLocale())
                 .withZone(ZoneId.systemDefault());
         var dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(getLocale());
 
+        // Grid de tarefas
         taskGrid = new Grid<>();
         taskGrid.setItems(query -> taskService.list(toSpringPageRequest(query)).stream());
+
+        // Priority column with colored icon and label
+        taskGrid.addComponentColumn(task -> {
+            Icon icon;
+            String color;
+            String label;
+            switch (task.getPriority()) {
+                case HIGH:
+                    icon = VaadinIcon.ARROW_UP.create();
+                    color = "red";
+                    label = "High";
+                    break;
+                case MEDIUM:
+                    icon = VaadinIcon.ARROW_RIGHT.create();
+                    color = "orange";
+                    label = "Medium";
+                    break;
+                case LOW:
+                    icon = VaadinIcon.ARROW_DOWN.create();
+                    color = "green";
+                    label = "Low";
+                    break;
+                default:
+                    icon = VaadinIcon.QUESTION.create();
+                    color = "gray";
+                    label = "Unknown";
+            }
+            icon.getStyle().set("color", color);
+            Span priorityLabel = new Span(label);
+            priorityLabel.getStyle().set("color", color).set("font-weight", "bold");
+            Span container = new Span(icon, priorityLabel);
+            container.getElement().getStyle().set("display", "flex").set("align-items", "center").set("gap", "0.3em");
+            return container;
+        }).setHeader("Priority");
+
         taskGrid.addColumn(Task::getDescription).setHeader("Description");
         taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("Never"))
                 .setHeader("Due Date");
         taskGrid.addColumn(task -> dateTimeFormatter.format(task.getCreationDate())).setHeader("Creation Date");
+        taskGrid.addComponentColumn(task -> {
+            Button qrButton = new Button("See QR Code");
+            qrButton.addClickListener(e -> {
+                String text = task.getDescription() + " - " +
+                        Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("No due date");
+                Image qrImage = QrCodeGenerator.generateQrCode(text, 200);
+                Dialog dialog = new Dialog(qrImage);
+                dialog.setHeaderTitle("QR Code for task");
+                dialog.open();
+            });
+            return qrButton;
+        }).setHeader("QR Code");
+
+        // Layout principal
         taskGrid.setSizeFull();
-
         setSizeFull();
-        addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
-                LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
+        addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX,
+                LumoUtility.FlexDirection.COLUMN, LumoUtility.Padding.MEDIUM,
+                LumoUtility.Gap.SMALL);
 
-        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
+        // Add priorityBox to the toolbar group
+        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, priorityBox, createBtn)));
+        add(exportBtn);
+
         add(taskGrid);
+
+        // Add an "Edit Priority" button column to the grid
+        taskGrid.addComponentColumn(task -> {
+            Button editBtn = new Button(VaadinIcon.EDIT.create(), event -> openEditPriorityDialog(task));
+            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            return editBtn;
+        }).setHeader("Edit Priority");
     }
 
+    // Criação de tarefas
     private void createTask() {
-        taskService.createTask(description.getValue(), dueDate.getValue());
+        // Pass priority to service
+        taskService.createTask(description.getValue(), dueDate.getValue(), priorityBox.getValue());
         taskGrid.getDataProvider().refreshAll();
         description.clear();
         dueDate.clear();
+        priorityBox.setValue(Task.Priority.MEDIUM);
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+    }
+
+    // Exportação de tarefas para PDF
+    private void exportTasksToPDF() {
+        try {
+
+            List<Task> tasks = taskService.listAll();
+
+
+            List<String> taskDescriptions = tasks.stream()
+                    .map(Task::getDescription)
+                    .toList();
+
+
+            String filePath = System.getProperty("user.home") + "/tasks.pdf";
+
+
+            PDFExporter.exportToPDF(taskDescriptions, filePath);
+
+
+            Notification.show("PDF successfully generated: " + filePath, 5000, Notification.Position.BOTTOM_END)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+        } catch (Exception ex) {
+            ex.printStackTrace(); // stack trace no console
+            Notification.show("Error generating PDF: " + ex.getMessage(), 5000, Notification.Position.BOTTOM_END)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    private void openEditPriorityDialog(Task task) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Edit Priority");
+
+        ComboBox<Task.Priority> priorityField = new ComboBox<>("Priority");
+        priorityField.setItems(Task.Priority.values());
+        priorityField.setValue(task.getPriority());
+
+        Button saveBtn = new Button("Save", event -> {
+            task.setPriority(priorityField.getValue());
+            taskService.updateTaskPriority(task.getId(), priorityField.getValue());
+            taskGrid.getDataProvider().refreshAll();
+            dialog.close();
+            Notification.show("Priority updated", 2000, Notification.Position.BOTTOM_END)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+
+        Button cancelBtn = new Button("Cancel", event -> dialog.close());
+
+        dialog.getFooter().add(cancelBtn, saveBtn);
+        dialog.add(priorityField);
+        dialog.open();
     }
 
 }
