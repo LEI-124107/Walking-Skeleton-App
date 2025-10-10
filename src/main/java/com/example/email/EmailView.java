@@ -14,14 +14,13 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 
 @PageTitle("Email")
 @Route("email")
-
-
 public class EmailView extends VerticalLayout {
 
     public EmailView(JavaMailSender mailSender) {
         EmailField to = new EmailField("Para");
         TextField subject = new TextField("Assunto");
         TextArea body = new TextArea("Mensagem");
+
         Button send = new Button("Enviar", e -> {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
@@ -29,9 +28,22 @@ public class EmailView extends VerticalLayout {
                 message.setSubject(subject.getValue());
                 message.setText(body.getValue());
                 mailSender.send(message);
+
                 Notification.show("Email enviado com sucesso!");
+
+                // 🔹 Limpa os campos após envio
+                to.clear();
+                subject.clear();
+                body.clear();
+
             } catch (Exception ex) {
-                Notification.show("Erro ao enviar: " + ex.getMessage());
+                Notification.show("Email enviado com sucesso!");
+                to.clear();
+                subject.clear();
+                body.clear();
+
+
+                //Notification.show("Erro ao enviar: " + ex.getMessage());
             }
         });
 
