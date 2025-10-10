@@ -30,6 +30,8 @@
         </dependencies>
     </dependencyManagement>
 
+
+
     <dependencies>
         <dependency>
             <groupId>com.vaadin</groupId>
@@ -57,11 +59,24 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+
+
+
+
+
+
+
+
+
+
+        <!-- PDF: Apache PDFBox 3 -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.2</version>
         </dependency>
+
+        <!-- QR Codes: ZXing -->
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
@@ -72,6 +87,20 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     </dependencies>
     
