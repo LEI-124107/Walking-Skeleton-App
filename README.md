@@ -1,6 +1,20 @@
 # App README
 
-- [ ] TODO Replace or update this README with instructions relevant to your application
+Link to the video : https://youtu.be/TXBmqWj4j38
+
+---
+
+## Grupo
+
+**Nickname do grupo:** BestBakers
+
+## Membros do grupo
+- Joana Silva - nº 93288
+- Afonso Carolo - nº 99917
+- Afonso Nóia - nº 123288
+- Tomás Francisco - nº 124107
+
+---
 
 ## Project Structure
 
