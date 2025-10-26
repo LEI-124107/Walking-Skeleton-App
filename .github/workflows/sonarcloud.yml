@@ -26,11 +26,21 @@ jobs:
       - name: Build with Maven
         run: mvn -B clean verify
 
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B verify sonar:sonar \
+            -Dsonar.projectKey=lei-to-do-app \
+            -Dsonar.organization=LEI2025 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
       - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@v1.2.0
         with:
           pollingTimeoutSec: 600
+          scanMetadataReportFile: .scannerwork/report-task.txt
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
