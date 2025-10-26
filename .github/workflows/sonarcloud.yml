@@ -33,14 +33,13 @@ jobs:
             -Dsonar.organization=lei-to-do-app \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      
 
       - name: SonarCloud Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
         with:
           pollingTimeoutSec: 600
-          projectBaseDir: app
+          scanMetadataReportFile: ../.scannerwork/report-task.txt
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
