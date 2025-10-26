@@ -9,7 +9,9 @@ on:
 
 jobs:
   build:
+    name: Build, Test and Sonar Scan
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,9 +27,12 @@ jobs:
         run: mvn -B clean verify
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectKey: lei-to-do-app
-          organization: LEI2025
-          token: ${{ secrets.SONAR_TOKEN }}
-          branch: ${{ github.ref_name }}
+          args: >
+            -Dsonar.projectKey=lei-to-do-app
+            -Dsonar.organization=LEI2025
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.branch.name=${{ github.ref_name }}
