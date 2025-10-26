@@ -33,16 +33,14 @@ jobs:
             -Dsonar.organization=lei-to-do-app \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        working-directory: ../
 
       - name: SonarCloud Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
-        with:
-          pollingTimeoutSec: 600
-          scanMetadataReportFile: ../.scannerwork/report-task.txt
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # 6. Show Quality Gate status
+
       - name: Show Quality Gate Status
         run: echo "Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
