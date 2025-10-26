@@ -32,7 +32,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=lei-to-do-app
-            -Dsonar.organization=LEI2025
+            -Dsonar.projectKey=LEI-124107_Walking-Skeleton-App
+            -Dsonar.organization=lei-124107
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.branch.name=${{ github.ref_name }}
