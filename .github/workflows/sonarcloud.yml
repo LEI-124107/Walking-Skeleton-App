@@ -38,6 +38,10 @@ jobs:
       - name: SonarCloud Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
+        working-directory: ${{ github.workspace }}  # <- run from repo root
+        with:
+          pollingTimeoutSec: 600
+          scanMetadataReportFile: .scannerwork/report-task.txt
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
