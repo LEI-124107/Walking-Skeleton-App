@@ -3,23 +3,21 @@ name: SonarCloud Workflow
 on:
   push:
     branches:
-      - '**'        # all branches
+      - '**'
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
-      - '**'        # all branches
+      - '**'
 
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repository
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Set up Java
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -33,19 +31,15 @@ jobs:
             -Dsonar.organization=lei-to-do-app \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-        working-directory: ${{ github.workspace }}
-
 
       - name: SonarCloud Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
-        working-directory: ${{ github.workspace }}  # <- run from repo root
         with:
           pollingTimeoutSec: 600
           scanMetadataReportFile: .scannerwork/report-task.txt
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
 
       - name: Show Quality Gate Status
         run: echo "Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
