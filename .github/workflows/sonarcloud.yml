@@ -32,6 +32,8 @@ jobs:
         with:
           pollingTimeoutSec: 600
         env:
+          SONAR_PROJECTKEY: LEI-124107_Walking-Skeleton-App
+          SONAR_ORGANIZATION: lei-to-do-app
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
