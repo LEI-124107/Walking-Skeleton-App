@@ -35,7 +35,6 @@ jobs:
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
       
 
-      # 5. Quality Gate check
       - name: SonarCloud Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
