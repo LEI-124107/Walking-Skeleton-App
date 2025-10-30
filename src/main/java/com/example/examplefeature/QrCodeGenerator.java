@@ -14,6 +14,7 @@ import java.util.Base64;
 
 public class QrCodeGenerator {
 
+
     public static Image generateQrCode(String text, int size) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
