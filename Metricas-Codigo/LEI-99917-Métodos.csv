@@ -1,0 +1,3 @@
+Method Name;CCM;CND;CDISP;CINT;FDP;HD;HEF;HER;HL;HVC;HVL;LOC;LAA;LND;MMI;MND;CC;NOAV;NOL;NOPM
+com.example.email.EmailView.EmailView(JavaMailSender);1;0;0,7143;14;2;19,9286;6078,2143;0,111;61;32;305;33;0;0;49,3869;2;2;7;0;1
+Os métodos da classe apresentam métricas equilibradas, sem valores críticos de complexidade ou tamanho. O principal método, responsável pelo envio do email, é simples e coeso, cumprindo bem a sua função. No entanto, o seu acoplamento direto ao serviço JavaMailSender pode ser revisto, extraindo a lógica de envio para uma classe de serviço separada. Esta melhoria aumentaria a modularidade e facilitaria a manutenção e testes da aplicação.;;;;;;;;;;;;;;;;;;;;

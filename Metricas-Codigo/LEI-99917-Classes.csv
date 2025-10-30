@@ -1,0 +1,4 @@
+Class Name;ATFD;CCC;CBO;DAC;DIT;CHD;CHEF;CHER;CHL;CHVC;CHVL;LCOM;CLOC;CMI;MPC;NCSS;NOAC;NOAM;NOA;SIZE2;NOC;NOM;NOO;NOOM;NOPA;RFC;TCC;WOC;WMC
+com.example.email.EmailView;2;1;0;0;3;20,625;7037,5604;0,1224;66;36;341,2151;0;33;49,0476;22;25;0;0;7;154;0;1;154;0;0;20;0;0;2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Classe com baixa complexidade e boa coesão, não apresentando valores críticos nas métricas analisadas. No entanto, combina lógica de interface com envio de email, o que pode indicar uma leve quebra do princípio da responsabilidade única. Beneficiaria de separar a lógica de envio para uma classe de serviço, tornando o código mais modular e fácil de manter.;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
